@@ -1,0 +1,80 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  username     String      @unique @db.VarChar(50)
+  email        String      @unique
+  password     String    
+  role         Role        @relation(fields: [role_id], references: [id])
+  role_id      Int  
+  jobSeeker    JobSeeker?
+  company      Company?
+}
+
+model Role {
+  id           Int       @id @default(autoincrement())
+  name         RoleName    @unique
+  users        User[]
+}
+
+
+model JobSeeker{
+  id           Int         @id @default(autoincrement())
+  user         User        @relation(fields: [user_id],references: [id])
+  user_id      Int         @unique
+  resume       String
+  education    String
+  experience   String
+  skills       String[]
+  jobApplication JobApplication[]
+}
+
+model Company{
+  id                 Int         @id  @default(autoincrement())
+  user               User        @relation(fields: [user_id],references: [id])
+  user_id            Int         @unique
+  company_name       String
+  description        String
+  website            String
+  location           String
+  jobListing         JobListing[]
+}
+
+
+model JobListing{
+  id                Int            @id  @default(autoincrement())
+  company           Company        @relation(fields: [company_id],references: [id])
+  company_id        Int            
+  title             String
+  description       String
+  skills_required   String[]
+  salary            Int
+  experience        String
+  startDate         DateTime
+  createdAt         DateTime       @default(now())   
+  location          String
+  jobApplication    JobApplication[]
+  
+}
+
+model JobApplication{  
+  id                Int           @id @default(autoincrement())
+  jobSeeker        JobSeeker      @relation(fields: [jobSeeker_id], references: [id])
+  jobSeeker_id      Int
+  jobListing       JobListing     @relation(fields: [jobListing_id], references: [id],onDelete: Cascade)
+  jobListing_id     Int
+  @@unique([jobSeeker_id, jobListing_id])
+}
+
+enum RoleName {
+  jobseeker
+  company
+}
